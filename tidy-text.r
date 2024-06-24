@@ -218,3 +218,33 @@ afinn |>
     scales = "free_y",
     nrow = 3
   )
+
+tidy_books |> 
+  inner_join(get_sentiments("bing")) |>
+  count(word, sentiment, sort = TRUE) |> 
+  group_by(sentiment) |> 
+  top_n(10) |> 
+  mutate(word = reorder(word, n)) |> 
+  ggplot(aes(word, n, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(
+    y = "Contribution to sentiment",
+    x = NULL
+  ) +
+  coord_flip()
+
+custom_stop_words <- tibble(
+  word = "miss",
+  lexicon = "custom"
+) |> 
+  bind_rows(stop_words)
+
+
+## Wordcloud ----------------------------------------------------------
+library(wordcloud)
+
+tidy_books |> 
+  anti_join(stop_words) |> 
+  count(word) |> 
+  with(wordcloud(word, n, max.words = 100))
